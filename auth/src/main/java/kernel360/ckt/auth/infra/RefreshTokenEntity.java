@@ -1,6 +1,7 @@
 package kernel360.ckt.auth.infra;
 
 import jakarta.persistence.*;
+import kernel360.ckt.auth.domain.RefreshTokenStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,10 +30,11 @@ public class RefreshTokenEntity {
     @Column(name = "expire_at")
     private LocalDateTime expireAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private RefreshTokenStatus status;
 
-    private RefreshTokenEntity(Long companyId, String token, LocalDateTime issueAt, LocalDateTime expireAt, String status) {
+    private RefreshTokenEntity(Long companyId, String token, LocalDateTime issueAt, LocalDateTime expireAt, RefreshTokenStatus status) {
         this.companyId = companyId;
         this.token = token;
         this.issueAt = issueAt;
@@ -40,7 +42,7 @@ public class RefreshTokenEntity {
         this.status = status;
     }
 
-    public static RefreshTokenEntity create(Long companyId, String token, LocalDateTime issueAt, LocalDateTime expireAt, String status) {
+    public static RefreshTokenEntity create(Long companyId, String token, LocalDateTime issueAt, LocalDateTime expireAt, RefreshTokenStatus status) {
         return new RefreshTokenEntity(companyId, token, issueAt, expireAt, status);
     }
 
@@ -48,14 +50,14 @@ public class RefreshTokenEntity {
         this.token = token;
         this.issueAt = issueAt;
         this.expireAt = expireAt;
-        this.status = "ACTIVE";
+        this.status = RefreshTokenStatus.ACTIVE;
     }
 
     public void expireToken() {
-        this.status = "EXPIRED";
+        this.status = RefreshTokenStatus.EXPIRED;
     }
 
     public boolean isExpired() {
-        return this.expireAt.isBefore(LocalDateTime.now()) || "EXPIRED".equalsIgnoreCase(this.status);
+        return this.expireAt.isBefore(LocalDateTime.now()) || this.status == RefreshTokenStatus.EXPIRED;
     }
 }
