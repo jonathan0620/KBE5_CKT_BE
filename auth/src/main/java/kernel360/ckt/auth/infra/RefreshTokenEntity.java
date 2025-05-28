@@ -44,13 +44,18 @@ public class RefreshTokenEntity {
         return new RefreshTokenEntity(companyId, token, issueAt, expireAt, status);
     }
 
-    public void updateToken(String newToken, LocalDateTime newIssueAt, LocalDateTime newExpireAt) {
-        this.token = newToken;
-        this.issueAt = newIssueAt;
-        this.expireAt = newExpireAt;
+    public void updateToken(String token, LocalDateTime issueAt, LocalDateTime expireAt) {
+        this.token = token;
+        this.issueAt = issueAt;
+        this.expireAt = expireAt;
+        this.status = "ACTIVE";
     }
 
-    public void markAsExpired() {
+    public void expireToken() {
         this.status = "EXPIRED";
+    }
+
+    public boolean isExpired() {
+        return this.expireAt.isBefore(LocalDateTime.now()) || "EXPIRED".equalsIgnoreCase(this.status);
     }
 }
