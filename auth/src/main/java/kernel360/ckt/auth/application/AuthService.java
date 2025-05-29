@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +34,9 @@ public class AuthService {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(company.getEmail());
-        String refreshToken = jwtTokenProvider.createRefreshToken(company.getEmail());
+        Date now = new Date();
+        String accessToken = jwtTokenProvider.createAccessToken(company.getEmail(), now);
+        String refreshToken = jwtTokenProvider.createRefreshToken(company.getEmail(), now);
 
         refreshTokenRepository.findByCompanyId(company.getId())
                 .ifPresent(refreshTokenRepository::delete);
@@ -61,8 +63,9 @@ public class AuthService {
         CompanyEntity company = companyRepository.findById(tokenEntity.getCompanyId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(company.getEmail());
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(company.getEmail());
+        Date now = new Date();
+        String newAccessToken = jwtTokenProvider.createAccessToken(company.getEmail(), now);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(company.getEmail(), now);
 
         tokenEntity.updateToken(newRefreshToken, LocalDateTime.now(), LocalDateTime.now().plusDays(7));
         refreshTokenRepository.save(tokenEntity);
@@ -78,5 +81,9 @@ public class AuthService {
 
         tokenEntity.expireToken();
         refreshTokenRepository.save(tokenEntity);
+    }
+
+    public String extractEmailFromToken(String token) {
+        return jwtTokenProvider.extractEmail(token);
     }
 }

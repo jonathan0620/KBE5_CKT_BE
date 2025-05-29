@@ -34,8 +34,7 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String createAccessToken(String email) {
-        Date now = new Date();
+    public String createAccessToken(String email, Date now) {
         return Jwts.builder()
             .setSubject(email)
             .setIssuedAt(now)
@@ -44,8 +43,7 @@ public class JwtTokenProvider {
             .compact();
     }
 
-    public String createRefreshToken(String email) {
-        Date now = new Date();
+    public String createRefreshToken(String email, Date now) {
         return Jwts.builder()
             .setSubject(email)
             .setIssuedAt(now)
@@ -66,14 +64,13 @@ public class JwtTokenProvider {
         }
     }
 
-    public Authentication getAuthentication(String token) {
+    public String extractEmail(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
             .getBody();
 
-        String email = claims.getSubject();
-        return new UsernamePasswordAuthenticationToken(email, null, null); // 권한 없이 생성
+        return claims.getSubject();
     }
 }
