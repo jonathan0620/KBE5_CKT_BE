@@ -34,18 +34,18 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String createAccessToken(String email, Date now) {
+    public String createAccessToken(Long companyId, Date now) {
         return Jwts.builder()
-            .setSubject(email)
+            .setSubject(String.valueOf(companyId))
             .setIssuedAt(now)
             .setExpiration(new Date(now.getTime() + accessTokenValidityInMs))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact();
     }
 
-    public String createRefreshToken(String email, Date now) {
+    public String createRefreshToken(Long companyId, Date now) {
         return Jwts.builder()
-            .setSubject(email)
+            .setSubject(String.valueOf(companyId))
             .setIssuedAt(now)
             .setExpiration(new Date(now.getTime() + refreshTokenValidityInMs))
             .signWith(key, SignatureAlgorithm.HS256)
@@ -64,13 +64,13 @@ public class JwtTokenProvider {
         }
     }
 
-    public String extractEmail(String token) {
+    public Long extractCompanyId(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
             .getBody();
 
-        return claims.getSubject();
+        return Long.parseLong(claims.getSubject());
     }
 }

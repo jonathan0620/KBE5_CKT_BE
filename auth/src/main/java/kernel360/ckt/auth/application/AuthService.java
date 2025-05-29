@@ -28,46 +28,53 @@ public class AuthService {
 
     public TokenResponse login(LoginCommand command) {
         CompanyEntity company = companyRepository.findByEmail(command.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("존재하지 않는 사용자입니다."));
+            .orElseThrow(() -> new BadCredentialsException("존재하지 않는 사용자입니다."));
 
         if (!passwordEncoder.matches(command.getPassword(), company.getPassword())) {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 
         Date now = new Date();
-        String accessToken = jwtTokenProvider.createAccessToken(company.getEmail(), now);
-        String refreshToken = jwtTokenProvider.createRefreshToken(company.getEmail(), now);
+        LocalDateTime issuedAt = LocalDateTime.now();
+        LocalDateTime expireAt = issuedAt.plusDays(7);
+
+        String accessToken = jwtTokenProvider.createAccessToken(company.getId(), now);
+        String refreshToken = jwtTokenProvider.createRefreshToken(company.getId(), now);
 
         refreshTokenRepository.findByCompanyId(company.getId())
-                .ifPresent(refreshTokenRepository::delete);
+            .ifPresent(refreshTokenRepository::delete);
 
         RefreshTokenEntity token = RefreshTokenEntity.create(
-                company.getId(),
-                refreshToken,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusDays(7),
-                RefreshTokenStatus.ACTIVE
+            company.getId(),
+            refreshToken,
+            issuedAt,
+            expireAt,
+            RefreshTokenStatus.ACTIVE
         );
         refreshTokenRepository.save(token);
 
         return new TokenResponse(accessToken, refreshToken);
     }
+
     public TokenResponse reissue(ReissueCommand command) {
         RefreshTokenEntity tokenEntity = refreshTokenRepository.findByToken(command.getRefreshToken())
-                .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 유효하지 않습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 유효하지 않습니다."));
 
         if (tokenEntity.isExpired()) {
             throw new IllegalArgumentException("리프레시 토큰이 만료되었습니다.");
         }
 
         CompanyEntity company = companyRepository.findById(tokenEntity.getCompanyId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         Date now = new Date();
-        String newAccessToken = jwtTokenProvider.createAccessToken(company.getEmail(), now);
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(company.getEmail(), now);
+        LocalDateTime issuedAt = LocalDateTime.now();
+        LocalDateTime expireAt = issuedAt.plusDays(7);
 
-        tokenEntity.updateToken(newRefreshToken, LocalDateTime.now(), LocalDateTime.now().plusDays(7));
+        String newAccessToken = jwtTokenProvider.createAccessToken(company.getId(), now);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(company.getId(), now);
+
+        tokenEntity.updateToken(newRefreshToken, issuedAt, expireAt);
         refreshTokenRepository.save(tokenEntity);
 
         return new TokenResponse(newAccessToken, newRefreshToken);
@@ -77,13 +84,13 @@ public class AuthService {
         String refreshToken = bearerToken.replace("Bearer ", "").trim();
 
         RefreshTokenEntity tokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 유효하지 않습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 유효하지 않습니다."));
 
         tokenEntity.expireToken();
         refreshTokenRepository.save(tokenEntity);
     }
 
-    public String extractEmailFromToken(String token) {
-        return jwtTokenProvider.extractEmail(token);
+    public Long extractCompanyIdFromToken(String token) {
+        return jwtTokenProvider.extractCompanyId(token);
     }
 }
