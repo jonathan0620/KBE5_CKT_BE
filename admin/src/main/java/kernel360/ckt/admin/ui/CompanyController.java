@@ -7,10 +7,13 @@ import kernel360.ckt.admin.ui.dto.request.CompanyUpdateRequest;
 import kernel360.ckt.admin.ui.dto.response.CompanyCreateResponse;
 import kernel360.ckt.admin.application.CompanyService;
 import kernel360.ckt.admin.ui.dto.response.CompanyListResponse;
+import kernel360.ckt.admin.ui.dto.response.CompanyMeResponse;
 import kernel360.ckt.admin.ui.dto.response.CompanyResponse;
 import kernel360.ckt.core.common.response.CommonResponse;
 import kernel360.ckt.core.domain.entity.CompanyEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,6 +55,19 @@ public class CompanyController {
     CommonResponse<Void> deleteCompany(@PathVariable Long id) {
         companyService.delete(id);
         return CommonResponse.success(null);
+    }
+
+    @GetMapping("/me")
+    CommonResponse<CompanyMeResponse> getMyCompany() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new IllegalStateException("로그인된 회사 정보를 찾을 수 없습니다.");
+        }
+
+        Long companyId = Long.parseLong(authentication.getPrincipal().toString());
+
+        CompanyEntity company = companyService.findMyCompany(companyId);
+        return CommonResponse.success(new CompanyMeResponse(company));
     }
 
 }
