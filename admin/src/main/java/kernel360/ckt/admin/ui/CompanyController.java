@@ -12,8 +12,7 @@ import kernel360.ckt.admin.ui.dto.response.CompanyResponse;
 import kernel360.ckt.core.common.response.CommonResponse;
 import kernel360.ckt.core.domain.entity.CompanyEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,16 +57,15 @@ public class CompanyController {
     }
 
     @GetMapping("/me")
-    CommonResponse<CompanyMeResponse> getMyCompany() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
+    CommonResponse<CompanyMeResponse> getMyCompany(@AuthenticationPrincipal(expression = "principal") String principal) {
+        if (principal == null) {
             throw new IllegalStateException("로그인된 회사 정보를 찾을 수 없습니다.");
         }
 
-        Long companyId = Long.parseLong(authentication.getPrincipal().toString());
-
+        Long companyId = Long.parseLong(principal);
         CompanyEntity company = companyService.findMyCompany(companyId);
         return CommonResponse.success(new CompanyMeResponse(company));
     }
+
 
 }
