@@ -2,7 +2,6 @@ package kernel360.ckt.gateway.config;
 
 import kernel360.ckt.gateway.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
