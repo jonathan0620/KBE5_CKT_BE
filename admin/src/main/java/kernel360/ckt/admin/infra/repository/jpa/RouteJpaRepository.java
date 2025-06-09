@@ -89,5 +89,4 @@ public interface RouteJpaRepository extends Repository<RouteEntity, Long> {
         @Param("endDate") LocalDateTime endDate,
         @Param("registrationNumber") String registrationNumber
     );
-
 }
