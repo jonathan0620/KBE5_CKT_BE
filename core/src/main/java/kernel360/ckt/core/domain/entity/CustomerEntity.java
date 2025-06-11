@@ -1,6 +1,7 @@
 package kernel360.ckt.core.domain.entity;
 
 import jakarta.persistence.*;
+import kernel360.ckt.core.domain.enums.CustomerStatus;
 import lombok.*;
 
 @Getter
@@ -16,12 +17,10 @@ public class CustomerEntity extends BaseTimeEntity {
     @Column(nullable = false)
     private String customerName;
 
-    @Column(nullable = false)
-    private String customerType;
-
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String phoneNumber;
 
+    @Column(nullable = false, unique = true)
     private String licenseNumber;
     private String zipCode;
     private String address;
@@ -33,10 +32,9 @@ public class CustomerEntity extends BaseTimeEntity {
     private String memo;
 
     @Column(nullable = false)
-    private String status;
+    private CustomerStatus status;
 
     public CustomerEntity(String customerName,
-                          String customerType,
                           String phoneNumber,
                           String licenseNumber,
                           String zipCode,
@@ -44,9 +42,8 @@ public class CustomerEntity extends BaseTimeEntity {
                           String detailedAddress,
                           String birthday,
                           String memo,
-                          String status) {
+                          CustomerStatus status) {
         this.customerName = customerName;
-        this.customerType = customerType;
         this.phoneNumber = phoneNumber;
         this.licenseNumber = licenseNumber;
         this.zipCode = zipCode;
@@ -59,7 +56,6 @@ public class CustomerEntity extends BaseTimeEntity {
 
     public static CustomerEntity create(
         String customerName,
-        String customerType,
         String phoneNumber,
         String licenseNumber,
         String zipCode,
@@ -70,7 +66,6 @@ public class CustomerEntity extends BaseTimeEntity {
     ) {
         return new CustomerEntity(
             customerName,
-            customerType,
             phoneNumber,
             licenseNumber,
             zipCode,
@@ -78,22 +73,20 @@ public class CustomerEntity extends BaseTimeEntity {
             detailedAddress,
             birthday,
             memo,
-            CustomerStatus.ACTIVE.name()
+            CustomerStatus.ACTIVE
         );
     }
 
     public void updateBasicInfo(String customerName,
-                                String customerType,
                                 String phoneNumber,
                                 String licenseNumber,
                                 String zipCode,
-                                String status,
+                                CustomerStatus status,
                                 String address,
                                 String detailedAddress,
                                 String birthday,
                                 String memo) {
                                                 this.customerName = customerName;
-                                                this.customerType = customerType;
                                                 this.phoneNumber = phoneNumber;
                                                 this.licenseNumber = licenseNumber;
                                                 this.zipCode = zipCode;

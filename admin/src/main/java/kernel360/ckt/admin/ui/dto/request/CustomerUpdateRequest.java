@@ -1,8 +1,9 @@
 package kernel360.ckt.admin.ui.dto.request;
 
+import kernel360.ckt.core.domain.enums.CustomerStatus;
+
 public record CustomerUpdateRequest (
     String customerName,
-    String customerType,
     String phoneNumber,
     String licenseNumber,
     String zipCode,
@@ -10,7 +11,7 @@ public record CustomerUpdateRequest (
     String detailedAddress,
     String birthday,
     String memo,
-    String status
+    CustomerStatus status
 ) {
 
 }

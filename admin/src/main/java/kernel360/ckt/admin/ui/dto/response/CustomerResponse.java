@@ -4,7 +4,6 @@ import kernel360.ckt.core.domain.entity.CustomerEntity;
 
 public record CustomerResponse (
     Long id,
-    String customerType,
     String customerName,
     String phoneNumber,
     String licenseNumber,
@@ -13,12 +12,12 @@ public record CustomerResponse (
     String detailAddress,
     String birthday,
     String status,
+    String statusName,
     String memo
 ){
     public static CustomerResponse from(CustomerEntity customerEntity) {
         return new CustomerResponse(
             customerEntity.getId(),
-            customerEntity.getCustomerType(),
             customerEntity.getCustomerName(),
             customerEntity.getPhoneNumber(),
             customerEntity.getLicenseNumber(),
@@ -26,7 +25,8 @@ public record CustomerResponse (
             customerEntity.getAddress(),
             customerEntity.getDetailedAddress(),
             customerEntity.getBirthday(),
-            customerEntity.getStatus(),
+            customerEntity.getStatus().name(),
+            customerEntity.getStatus().getDescription(),
             customerEntity.getMemo()
         );
     }
