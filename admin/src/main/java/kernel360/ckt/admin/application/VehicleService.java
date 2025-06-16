@@ -4,11 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import kernel360.ckt.admin.application.command.CreateVehicleCommand;
+import kernel360.ckt.admin.application.command.UpdateVehicleCommand;
 import kernel360.ckt.admin.infra.repository.jpa.RentalJpaRepository;
 import kernel360.ckt.admin.ui.dto.request.VehicleUpdateRequest;
 import kernel360.ckt.admin.ui.dto.response.ControlTowerSummaryResponse;
 import kernel360.ckt.admin.ui.dto.response.GpsPointResponse;
 import kernel360.ckt.admin.ui.dto.response.RunningVehicleResponse;
+import kernel360.ckt.core.common.error.VehicleErrorCode;
+import kernel360.ckt.core.common.exception.CustomException;
+import kernel360.ckt.core.domain.entity.RentalEntity;
 import kernel360.ckt.core.domain.entity.VehicleEntity;
 import kernel360.ckt.core.domain.enums.RentalStatus;
 import kernel360.ckt.core.domain.enums.VehicleStatus;
@@ -33,22 +37,30 @@ public class VehicleService {
     private final ObjectMapper objectMapper;
 
     public VehicleEntity create(CreateVehicleCommand command) {
+        vehicleRepository.findByRegistrationNumber(command.getRegistrationNumber())
+            .ifPresent(vehicle -> {
+                throw new CustomException(VehicleErrorCode.DUPLICATE_REGISTRATION_NUMBER);
+            });
+
         return vehicleRepository.save(command.toEntity());
     }
 
     @Transactional
-    public VehicleEntity update(Long id, VehicleUpdateRequest request) {
+    public VehicleEntity update(Long id, UpdateVehicleCommand command) {
         VehicleEntity vehicle = vehicleRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with id: " + id));
+            .orElseThrow(() -> new CustomException(VehicleErrorCode.VEHICLE_NOT_FOUND));
 
-        if (request.status() != null) {
-            vehicle.updateStatus(request.status());
-        }
-        if (request.memo() != null) {
-            vehicle.updateMemo(request.memo());
-        }
+        vehicle.updateVehicle(
+            command.getModelYear(),
+            command.getManufacturer(),
+            command.getModelName(),
+            command.getBatteryVoltage(),
+            command.getFuelType(),
+            command.getTransmissionType(),
+            command.getMemo()
+        );
 
-        return vehicle;
+        return vehicleRepository.save(vehicle);
     }
 
     public Page<VehicleEntity> findAll(Pageable pageable) {
@@ -75,31 +87,42 @@ public class VehicleService {
         return ControlTowerSummaryResponse.of((int) total, (int) running, (int) stopped);
     }
 
-    public List<RunningVehicleResponse> getRunningVehicles() {
-        return rentalRepository.findRentalsByStatus(RentalStatus.RENTED).stream()
-            .map(RunningVehicleResponse::from)
+    public List<RunningVehicleResponse> getVehicleLocations() {
+        List<RentalEntity> runningRentals = rentalJpaRepository.findRentedRentals();
+
+        return runningRentals.stream()
+            .map(rental -> {
+                Long vehicleId = rental.getVehicle().getId();
+                Optional<String> traceJsonOpt = rentalJpaRepository.findLatestTraceJsonByVehicleId(vehicleId);
+
+                GpsPointResponse location = traceJsonOpt
+                    .map(this::parseGpsFromTraceJson)
+                    .orElse(null);
+
+                return RunningVehicleResponse.from(rental, location);
+            })
             .toList();
     }
 
-    public Optional<GpsPointResponse> getLastTracePoint(Long vehicleId) {
-        return rentalJpaRepository.findLatestTraceJsonByVehicleId(vehicleId)
-            .flatMap(json -> {
-                try {
-                    JsonNode traceArray = objectMapper.readTree(json);
-                    if (traceArray.isEmpty()) return Optional.empty();
+    private GpsPointResponse parseGpsFromTraceJson(String traceJson) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(traceJson);
 
-                    JsonNode last = traceArray.get(traceArray.size() - 1);
-                    return Optional.of(new GpsPointResponse(
-                        last.get("lat").asText(),
-                        last.get("lon").asText(),
-                        last.get("ang").asText(),
-                        last.get("spd").asText()
-                    ));
-                } catch (Exception e) {
-                    return Optional.empty();
-                }
-            });
+            if (root.isArray() && root.size() > 0) {
+                JsonNode last = root.get(root.size() - 1); // 마지막 위치 정보
+
+                return new GpsPointResponse(
+                    last.path("lat").asText(null),
+                    last.path("lon").asText(null),
+                    last.path("ang").asText(null),
+                    last.path("spd").asText(null)
+                );
+            }
+        } catch (Exception e) {
+            // 로그 남기거나 무시
+        }
+        return null;
     }
-
 
 }
