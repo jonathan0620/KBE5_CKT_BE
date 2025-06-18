@@ -4,8 +4,25 @@ dependencies {
 
     implementation("com.fasterxml.jackson.core:jackson-databind")
 
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    compileOnly 'org.springframework:spring-web'
+
+    // Micrometer Tracing
+    implementation 'io.micrometer:micrometer-tracing'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+
+    // AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 }
 
 tasks.bootJar {
     enabled = false
+}
+
+tasks.jar {
+    enabled = true
 }
