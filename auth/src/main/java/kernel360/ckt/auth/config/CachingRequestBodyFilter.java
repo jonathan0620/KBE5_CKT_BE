@@ -1,4 +1,4 @@
-package kernel360.ckt.core.common.filter;
+package kernel360.ckt.auth.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
