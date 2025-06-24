@@ -28,6 +28,11 @@ public class CustomerService {
     public CustomerEntity create(CreateCustomerCommand command) {
         log.info("고객 생성 시도: {}", command);
 
+        if (customerRepository.findByLicenseNumber(command.getLicenseNumber()).isPresent()) {
+            log.warn("고객 생성 실패 - 중복된 운전면허번호: {}", command.getLicenseNumber());
+            throw new CustomException(CustomerErrorCode.DUPLICATE_LICENSE_NUMBER);
+        }
+
         try {
             CustomerEntity customer = customerRepository.save(command.toEntity());
             log.info("고객 생성 성공: id={}, name={}", customer.getId(), customer.getCustomerName());
@@ -94,18 +99,7 @@ public class CustomerService {
     }
 
     public Page<CustomerEntity> searchCustomers(CustomerStatus status, String keyword, Pageable pageable) {
-        log.info("고객 목록 조회: status={}, keyword={}, pageable={}", status, keyword, pageable);
         return customerRepository.findAll(status, keyword, pageable);
-    }
-
-    public CustomerEntity findByLicenseNumber(String licenseNumber) {
-        log.info("면허번호로 고객 조회 시도: licenseNumber={}", licenseNumber);
-
-        return customerRepository.findByLicenseNumber(licenseNumber)
-            .orElseThrow(() -> {
-                log.error("고객 조회 실패 - 면허번호 존재하지 않음: {}", licenseNumber);
-                return new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND);
-            });
     }
 
     public CustomerSummaryResponse getCustomerSummary() {
