@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import kernel360.ckt.admin.application.port.CustomerRepository;
 import kernel360.ckt.admin.application.port.RentalRepository;
 import kernel360.ckt.admin.application.service.command.CreateCustomerCommand;
+import kernel360.ckt.admin.application.service.command.CustomerKeywordCommand;
 import kernel360.ckt.admin.ui.dto.request.CustomerUpdateRequest;
 import kernel360.ckt.admin.ui.dto.response.CustomerSummaryResponse;
 import kernel360.ckt.core.common.error.CustomerErrorCode;
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -109,6 +112,10 @@ public class CustomerService {
         long renting = rentalRepository.countRentedCustomers();
 
         return CustomerSummaryResponse.of(total, individual, corporate, renting);
+    }
+
+    public List<CustomerEntity> searchKeyword(CustomerKeywordCommand command) {
+        return customerRepository.findByCustomerNameContainingOrPhoneNumberContaining(command.getKeyword(), command.getKeyword());
     }
 
 }

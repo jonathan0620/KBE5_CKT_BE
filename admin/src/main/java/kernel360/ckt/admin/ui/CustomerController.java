@@ -3,8 +3,9 @@ package kernel360.ckt.admin.ui;
 import kernel360.ckt.admin.application.service.CustomerService;
 import kernel360.ckt.admin.application.service.command.CreateCustomerCommand;
 import kernel360.ckt.admin.ui.dto.request.CustomerCreateRequest;
+import kernel360.ckt.admin.ui.dto.request.CustomerKeywordRequest;
 import kernel360.ckt.admin.ui.dto.request.CustomerUpdateRequest;
-import kernel360.ckt.admin.ui.dto.response.CustomerDetailResponse;
+import kernel360.ckt.admin.ui.dto.response.CustomerKeywordListResponse;
 import kernel360.ckt.admin.ui.dto.response.CustomerListResponse;
 import kernel360.ckt.admin.ui.dto.response.CustomerResponse;
 import kernel360.ckt.admin.ui.dto.response.CustomerSummaryResponse;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -67,5 +70,11 @@ public class CustomerController {
     @GetMapping("/summary")
     public CommonResponse<CustomerSummaryResponse> getCustomerSummary() {
         return CommonResponse.success(customerService.getCustomerSummary());
+    }
+
+    @GetMapping("/search")
+    public CommonResponse<CustomerKeywordListResponse> searchKeyword(CustomerKeywordRequest request) {
+        final List<CustomerEntity> customers = customerService.searchKeyword(request.toCommand());
+        return CommonResponse.success(CustomerKeywordListResponse.from(customers));
     }
 }
