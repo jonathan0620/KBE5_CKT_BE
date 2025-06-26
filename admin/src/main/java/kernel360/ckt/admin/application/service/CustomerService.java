@@ -32,7 +32,6 @@ public class CustomerService {
         log.info("고객 생성 시도: {}", command);
 
         if (customerRepository.findByLicenseNumber(command.getLicenseNumber()).isPresent()) {
-            log.warn("고객 생성 실패 - 중복된 운전면허번호: {}", command.getLicenseNumber());
             throw new CustomException(CustomerErrorCode.DUPLICATE_LICENSE_NUMBER);
         }
 
@@ -41,7 +40,6 @@ public class CustomerService {
             log.info("고객 생성 성공: id={}, name={}", customer.getId(), customer.getCustomerName());
             return customer;
         } catch (Exception e) {
-            log.error("고객 생성 실패: {}", command, e);
             throw new CustomException(CustomerErrorCode.CUSTOMER_CREATION_FAILED);
         }
     }
@@ -51,10 +49,7 @@ public class CustomerService {
         log.info("고객 수정 시도: id={}, request={}", id, request);
 
         CustomerEntity customer = customerRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("고객 수정 실패 - 존재하지 않음: id={}", id);
-                return new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND);
-            });
+            .orElseThrow(() -> new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND));
 
         try {
             customer.updateBasicInfo(
@@ -72,7 +67,6 @@ public class CustomerService {
             log.info("고객 수정 완료: id={}", id);
             return customer;
         } catch (Exception e) {
-            log.error("고객 수정 중 예외 발생: id={}, request={}", id, request, e);
             throw new CustomException(CustomerErrorCode.CUSTOMER_UPDATE_FAILED);
         }
     }
@@ -81,10 +75,7 @@ public class CustomerService {
         log.info("고객 상세 조회 시도: id={}", id);
 
         return customerRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("고객 상세 조회 실패 - 존재하지 않음: id={}", id);
-                return new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND);
-            });
+            .orElseThrow(() -> new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND));
     }
 
     @Transactional
@@ -92,10 +83,7 @@ public class CustomerService {
         log.info("고객 삭제 시도: id={}", id);
 
         CustomerEntity customer = customerRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("고객 삭제 실패 - 존재하지 않음: id={}", id);
-                return new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND);
-            });
+            .orElseThrow(() -> new CustomException(CustomerErrorCode.CUSTOMER_NOT_FOUND));
 
         customerRepository.deleteById(id);
         log.info("고객 삭제 완료: id={}", id);
