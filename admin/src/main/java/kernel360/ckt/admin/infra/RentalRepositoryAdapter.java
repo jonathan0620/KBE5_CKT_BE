@@ -40,12 +40,7 @@ public class RentalRepositoryAdapter implements RentalRepository {
     }
 
     @Override
-    public List<RentalEntity> findRentalsByStatus(RentalStatus status) {
-        return rentalJpaRepository.findRentalsByStatus(status);
-    }
-
-    @Override
-    public long countVehiclesByStatus(RentalStatus status) {
-        return rentalJpaRepository.countVehiclesByStatus(status);
+    public long countVehiclesByVehicleIds(List<Long> vehicleIds) {
+        return rentalJpaRepository.countVehiclesByVehicleIds(vehicleIds);
     }
 }
