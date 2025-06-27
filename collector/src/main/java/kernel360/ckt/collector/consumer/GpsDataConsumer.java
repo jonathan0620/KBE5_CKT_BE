@@ -19,14 +19,13 @@ public class GpsDataConsumer {
     private final VehicleCollectorService vehicleCollectorService;
     private final ObjectMapper objectMapper;
 
-    @RabbitListener(queues = RabbitConfig.GPS_QUEUE)
+    @RabbitListener(queues = RabbitConfig.DB_QUEUE)
     public void receiveGpsData(String message) {
         try {
-            log.info("MQ 수신: {}", message);
             VehicleCollectorCycleRequest request = objectMapper.readValue(message, VehicleCollectorCycleRequest.class);
             vehicleCollectorService.saveVehicleCycle(request.toCommand());
         } catch (Exception e) {
-            log.error("MQ 처리 실패: {}", message, e);
+            log.error("MQ 처리 실패 (DB 저장용): {}", message, e);
         }
     }
 }
