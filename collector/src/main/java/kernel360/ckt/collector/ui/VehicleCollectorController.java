@@ -81,16 +81,22 @@ public class VehicleCollectorController {
 
     @PostMapping("/cycle")
     public DeferredResult<ResponseEntity<Map<String, String>>> handleCycleData(@RequestBody String payload) {
-       log.info("▶ 요청 수신, thread: {}", Thread.currentThread().getName());
-       DeferredResult<ResponseEntity<Map<String, String>>> dr = new DeferredResult<>();
+        log.info("▶ 요청 수신, thread: {}", Thread.currentThread().getName());
+        DeferredResult<ResponseEntity<Map<String, String>>> dr = new DeferredResult<>();
 
-          collectorExec.execute(() -> {
-              log.info("  → AsyncTask 시작, thread: {}", Thread.currentThread().getName());
-              rabbitTemplate.convertAndSend(RabbitConfig.GPS_QUEUE, payload);
-              log.info("  → AsyncTask 완료");
-              dr.setResult(ResponseEntity.ok(Map.of("status", "queued")));
-      });
-      return dr;
-  }
+        collectorExec.execute(() -> {
+            log.info("  → AsyncTask 시작, thread: {}", Thread.currentThread().getName());
+
+            // DB 저장용 큐로 전송
+            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, "gps.db", payload);
+
+            // 실시간 관제용 큐로 전송
+            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, "gps.view", payload);
+
+            log.info("  → AsyncTask 완료");
+            dr.setResult(ResponseEntity.ok(Map.of("status", "queued")));
+        });
+        return dr;
+    }
 
 }
