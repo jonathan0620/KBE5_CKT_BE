@@ -43,7 +43,7 @@ public class CustomerEntity extends BaseTimeEntity {
     @JoinColumn(name = "company_id", nullable = false)
     private CompanyEntity company;
 
-    @Column(name = "delete_yn", nullable = false)
+    @Column(name = "delete_yn", nullable = false, length = 1, columnDefinition = "CHAR(1)")
     private String deleteYn = "N";
 
     public CustomerEntity(CustomerType customerType,
