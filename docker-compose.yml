@@ -76,7 +76,7 @@ services:
       - db
       - rabbitmq
     environment:
-      SPRING_PROFILES_ACTIVE: collector, consumer
+      SPRING_PROFILES_ACTIVE: consumer
       SPRING_REACTOR_CONTEXT_PROPAGATION: AUTO
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_URL}:3306/${DB_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
