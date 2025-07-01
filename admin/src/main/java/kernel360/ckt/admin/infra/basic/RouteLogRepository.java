@@ -31,11 +31,8 @@ public interface RouteLogRepository extends Repository<RouteEntity, Long> {
         LEFT JOIN driving_log dl ON r.driving_log_id = dl.id
         LEFT JOIN vehicle v ON dl.vehicle_id = v.id
         LEFT JOIN company c ON v.company_id = c.id
-        LEFT JOIN rental rent ON dl.rental_id = rent.id
-        LEFT JOIN customer cu ON rent.customer_id = cu.id
         WHERE r.start_at BETWEEN :startDate AND :endDate
           AND (:registrationNumber IS NULL OR :registrationNumber = '' OR v.registration_number = :registrationNumber)
-          AND (:driverName IS NULL OR :driverName = '' OR (cu.customer_name IS NOT NULL AND cu.customer_name LIKE CONCAT('%', :driverName, '%')))
         GROUP BY v.registration_number, c.name
         """,
         nativeQuery = true
@@ -43,8 +40,7 @@ public interface RouteLogRepository extends Repository<RouteEntity, Long> {
     List<VehicleLogSummaryProjection> findVehicleLogSummaryBetween(
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate,
-        @Param("registrationNumber") String registrationNumber,
-        @Param("driverName") String driverName
+        @Param("registrationNumber") String registrationNumber
     );
 
     // 주간 운행 통계
@@ -101,5 +97,4 @@ public interface RouteLogRepository extends Repository<RouteEntity, Long> {
         @Param("endDate") LocalDateTime endDate,
         @Param("registrationNumber") String registrationNumber
     );
-
 }
