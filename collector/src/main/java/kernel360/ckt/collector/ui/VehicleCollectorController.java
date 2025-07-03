@@ -2,11 +2,9 @@ package kernel360.ckt.collector.ui;
 
 import jakarta.validation.Valid;
 import kernel360.ckt.collector.application.service.VehicleCollectorService;
-import kernel360.ckt.collector.application.service.command.VehicleCollectorCycleCommand;
 import kernel360.ckt.collector.application.service.command.VehicleCollectorOffCommand;
 import kernel360.ckt.collector.application.service.command.VehicleCollectorOnCommand;
 import kernel360.ckt.collector.config.RabbitConfig;
-import kernel360.ckt.collector.ui.dto.request.VehicleCollectorCycleRequest;
 import kernel360.ckt.collector.ui.dto.request.VehicleCollectorOffRequest;
 import kernel360.ckt.collector.ui.dto.request.VehicleCollectorOnRequest;
 import kernel360.ckt.collector.ui.dto.response.VehicleCollectorResponse;
@@ -66,19 +64,6 @@ public class VehicleCollectorController {
         final VehicleCollectorOffCommand command = request.toCommand();
         return CommonResponse.success(vehicleCollectorService.sendVehicleOff(command));
     }
-
-   /*
-     * 차량 주기적 위치 정보 저장 API
-     *
-     * @param request 차량 주기적 위치 정보 요청 정보 {@link VehicleCollectorCycleRequest} DTO
-     * @return 차량 주기적 위치 정보 저장 결과 {@link VehicleCollectorResponse}
-     *
-    @PostMapping("/cycle")
-    CommonResponse<VehicleCollectorResponse> saveVehicleCycle(@Valid @RequestBody VehicleCollectorCycleRequest request) {
-        log.info("차량 주기적 위치 정보 저장 요청 - {}", request);
-        final VehicleCollectorCycleCommand cycleCommand = request.toCommand();
-        return CommonResponse.success(vehicleCollectorService.saveVehicleCycle(cycleCommand));
-    }*/
 
     @PostMapping("/cycle")
     public DeferredResult<ResponseEntity<Map<String, String>>> handleCycleData(@RequestBody String payload) {
