@@ -18,7 +18,8 @@ services:
 
   admin:
     build:
-      context: ./admin
+      context: .
+      dockerfile: ./admin/Dockerfile
     depends_on:
       - db
     environment:
@@ -34,14 +35,20 @@ services:
       - ./logs:/logs
     networks:
       - ckt_network  # 네트워크 이름 변경
+    command:
+      -Dprofiler.transport.grpc.collector.ip=pinpoint-collector
+      -Dprofiler.collector.ip=pinpoint-collector
+      -jar app.jar
+
 
   gateway:
     build:
-      context: ./gateway
+      context: .
+      dockerfile: ./gateway/Dockerfile
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE} # docker
+      SPRING_PROFILES_ACTIVE: docker # ${SPRING_PROFILES_ACTIVE} # docker
       SPRING_REACTOR_CONTEXT_PROPAGATION: AUTO
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
@@ -50,10 +57,15 @@ services:
       - ./logs:/logs
     networks:
       - ckt_network
+    command:
+      -Dprofiler.transport.grpc.collector.ip=pinpoint-collector
+      -Dprofiler.collector.ip=pinpoint-collector
+      -jar app.jar
 
   collector:
     build:
-      context: ./collector
+      context: .
+      dockerfile: ./collector/Dockerfile
     depends_on:
       - db
       - rabbitmq
@@ -71,9 +83,15 @@ services:
       - ./logs:/logs
     networks:
       - ckt_network
+    command:
+      -Dprofiler.transport.grpc.collector.ip=pinpoint-collector
+      -Dprofiler.collector.ip=pinpoint-collector
+      -jar app.jar
+
   consumer:
     build:
-      context: ./collector
+      context: .
+      dockerfile: ./consumer/Dockerfile
     depends_on:
       - db
       - rabbitmq
@@ -143,5 +161,6 @@ volumes:
     driver: local
 
 networks:
-  ckt_network:   # 네트워크 이름 변경
+  ckt_network:
+    name: ckt_network
     driver: bridge
