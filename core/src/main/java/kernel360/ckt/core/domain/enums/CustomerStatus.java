@@ -4,13 +4,12 @@ import lombok.Getter;
 
 @Getter
 public enum CustomerStatus {
-    ACTIVE("회원"),
-    WITHDRAWN("탈퇴"),
-    DORMANT("휴면");
+    ACTIVE("활성"),
+    WITHDRAWN("비활성");
 
-    private final String description;
+    private final String value;
 
-    CustomerStatus(String description) {
-        this.description = description;
+    CustomerStatus(String value) {
+        this.value = value;
     }
 }

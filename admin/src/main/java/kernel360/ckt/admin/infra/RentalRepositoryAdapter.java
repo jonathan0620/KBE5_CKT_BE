@@ -35,17 +35,37 @@ public class RentalRepositoryAdapter implements RentalRepository {
     }
 
     @Override
-    public List<RentalEntity> findOverlappingRentalsByVehicleAndStatuses(VehicleEntity vehicle, List<RentalStatus> statuses, LocalDateTime pickupAt, LocalDateTime returnAt) {
-        return rentalJpaRepository.findOverlappingRentalsByVehicleAndStatuses(vehicle, statuses, pickupAt, returnAt);
+    public List<RentalEntity> findOverlappingRentalsByVehicleAndStatusesExcludingRental(VehicleEntity vehicle, List<RentalStatus> statuses, LocalDateTime pickupAt, LocalDateTime returnAt, Long excludeRentalId) {
+        return rentalJpaRepository.findOverlappingRentalsByVehicleAndStatusesExcludingRental(vehicle, statuses, pickupAt, returnAt, excludeRentalId);
     }
 
     @Override
-    public List<RentalEntity> findRentalsByStatus(RentalStatus status) {
-        return rentalJpaRepository.findRentalsByStatus(status);
+    public long countRentedCustomers() { return rentalJpaRepository.countRentedCustomers(); }
+
+    @Override
+    public Optional<RentalEntity> findLatestRentalByCustomerIdAndStatus(Long customerId, RentalStatus status) {
+        List<RentalEntity> result = rentalJpaRepository
+            .findFirstRentalByCustomerIdAndStatusFetchVehicle(customerId, status);
+        return result.stream().findFirst();
     }
 
     @Override
-    public long countVehiclesByStatus(RentalStatus status) {
-        return rentalJpaRepository.countVehiclesByStatus(status);
+    public List<RentalEntity> findAllByCustomerIdFetchVehicle(Long customerId) {
+        return rentalJpaRepository.findAllByCustomerIdFetchVehicle(customerId);
+    }
+
+    @Override
+    public long countByCustomerId(Long customerId) {
+        return rentalJpaRepository.countByCustomerId(customerId);
+    }
+
+    @Override
+    public long countByCustomerIdAndStatus(Long customerId, RentalStatus status) {
+        return rentalJpaRepository.countByCustomerIdAndStatus(customerId, status);
+    }
+
+    @Override
+    public long countRentedCustomersByCompanyId(Long companyId) {
+        return rentalJpaRepository.countRentedCustomersByCompanyId(companyId);
     }
 }

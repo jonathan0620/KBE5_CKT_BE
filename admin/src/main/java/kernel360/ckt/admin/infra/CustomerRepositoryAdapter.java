@@ -4,6 +4,7 @@ import kernel360.ckt.admin.application.port.CustomerRepository;
 import kernel360.ckt.admin.infra.jpa.CustomerJpaRepository;
 import kernel360.ckt.core.domain.entity.CustomerEntity;
 import kernel360.ckt.core.domain.enums.CustomerStatus;
+import kernel360.ckt.core.domain.enums.CustomerType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +24,8 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
     }
 
     @Override
-    public Page<CustomerEntity> findAll(CustomerStatus status, String keyword, Pageable pageable) {
-        return customerJpaRepository.findAll(status, keyword, pageable);
+    public Page<CustomerEntity> findAll(Long companyId, CustomerType type, CustomerStatus status, String keyword, Pageable pageable) {
+        return customerJpaRepository.findAll(companyId, type, status, keyword, pageable);
     }
 
     @Override
@@ -38,13 +39,22 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
     }
 
     @Override
-    public void deleteById(Long id) {
-        customerJpaRepository.deleteById(id);
+    public List<CustomerEntity> search(Long companyId, String customerNameKeyword, String phoneNumberKeyword) {
+        return customerJpaRepository.findByDeleteYnAndCompanyIdAndCustomerNameStartingWithOrPhoneNumberStartingWith("N", companyId, customerNameKeyword, phoneNumberKeyword);
     }
 
     @Override
-    public List<CustomerEntity> findByCustomerNameContainingOrPhoneNumberContaining(String customerNameKeyword, String phoneNumberKeyword) {
-        return customerJpaRepository.findByCustomerNameContainingOrPhoneNumberContaining(customerNameKeyword, phoneNumberKeyword);
+    public Optional<CustomerEntity> findByIdAndDeleteYn(Long id, String deleteYn) {
+        return customerJpaRepository.findByIdAndDeleteYn(id, deleteYn);
     }
 
+    @Override
+    public long countTotalByCompanyIdAndDeleteYn(Long companyId, String deleteYn) {
+        return customerJpaRepository.countByCompanyIdAndDeleteYn(companyId, deleteYn);
+    }
+
+    @Override
+    public long countByTypeAndCompanyIdAndDeleteYn(CustomerType type, Long companyId, String deleteYn) {
+        return customerJpaRepository.countByCustomerTypeAndCompanyIdAndDeleteYn(type, companyId, deleteYn);
+    }
 }

@@ -1,22 +1,18 @@
 package kernel360.ckt.admin.ui;
 
+import jakarta.validation.Valid;
 import kernel360.ckt.admin.application.service.DrivingLogService;
-import kernel360.ckt.admin.ui.dto.request.DrivingLogUpdateRequest;
+import kernel360.ckt.admin.ui.dto.request.DrivingLogListRequest;
 import kernel360.ckt.admin.ui.dto.response.DrivingLogDetailResponse;
 import kernel360.ckt.admin.ui.dto.response.DrivingLogListResponse;
-import kernel360.ckt.admin.ui.dto.response.DrivingLogUpdateResponse;
 import kernel360.ckt.core.common.response.CommonResponse;
-import kernel360.ckt.core.domain.entity.DrivingLogEntity;
-import kernel360.ckt.core.domain.enums.DrivingType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/logs/drive")
@@ -25,29 +21,21 @@ public class DrivingLogController {
 
     @GetMapping
     public CommonResponse<DrivingLogListResponse> getAllDrivingLogs(
-        @RequestParam(required = false) String vehicleNumber,
-        @RequestParam(required = false) String userName,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime startDate,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime endDate,
-        @RequestParam(required = false) DrivingType type,
-        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @Valid DrivingLogListRequest request,
+        @PageableDefault(size = 10) Pageable pageable
     ) {
-        DrivingLogListResponse response = drivingLogService.getDrivingLogList(vehicleNumber, userName, startDate, endDate, type, pageable);
+        log.info("운행 일지 목록 조회 요청 - vehicleNumber: {}, startDate: {}, endDate: {}, pageable: {}",
+            request.vehicleNumber(), request.startDate(), request.endDate(), pageable
+        );
+        DrivingLogListResponse response = drivingLogService.retrieveDrivingLogs(request.toCommand(), pageable);
         return CommonResponse.success(response);
     }
 
     @GetMapping("/{id}")
     public CommonResponse<DrivingLogDetailResponse> selectDrivingLog(@PathVariable Long id) {
+        log.info("운행 일지 상세 정보 조회 요청, id: {}", id);
         DrivingLogDetailResponse response = drivingLogService.getDrivingLogDetail(id);
         return CommonResponse.success(response);
     }
 
-    @PutMapping("/{id}")
-    public CommonResponse<DrivingLogUpdateResponse> updateDrivingLog(
-        @PathVariable Long id,
-        @RequestBody DrivingLogUpdateRequest request
-    ) {
-        final DrivingLogEntity updated = drivingLogService.update(id, request);
-        return CommonResponse.success(DrivingLogUpdateResponse.from(updated));
-    }
 }

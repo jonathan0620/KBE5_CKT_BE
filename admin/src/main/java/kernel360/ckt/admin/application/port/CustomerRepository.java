@@ -2,6 +2,7 @@ package kernel360.ckt.admin.application.port;
 
 import kernel360.ckt.core.domain.entity.CustomerEntity;
 import kernel360.ckt.core.domain.enums.CustomerStatus;
+import kernel360.ckt.core.domain.enums.CustomerType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,7 +31,7 @@ public interface CustomerRepository {
      * @param pageable 페이징 정보
      * @return 조건에 맞는 고객 목록
      */
-    Page<CustomerEntity> findAll(CustomerStatus status, String keyword, Pageable pageable);
+    Page<CustomerEntity> findAll(Long companyId, CustomerType type, CustomerStatus status, String keyword, Pageable pageable);
 
     /**
      * 고객 ID로 고객을 조회합니다.
@@ -49,17 +50,39 @@ public interface CustomerRepository {
     Optional<CustomerEntity> findByLicenseNumber(String licenseNumber);
 
     /**
-     * 고객 ID로 고객을 삭제합니다.
-     *
-     * @param id 삭제할 고객 ID
+     * Keyword에 맞는 고객을 조회합니다.
+     * @param companyId 회사의 ID
+     * @param customerNameKeyword 키워드 - 고객명
+     * @param phoneNumberKeyword 키워드 - 휴대폰 번호
+     * @return 조건에 맞은 고객 정보
      */
-    void deleteById(Long id);
+    List<CustomerEntity> search(Long companyId, String customerNameKeyword, String phoneNumberKeyword);
 
     /**
-     * Keyword에 맞는 고객을 조회합니다.
-     * @param customerNameKeyword
-     * @param phoneNumberKeyword
-     * @return
+     * ID 및 삭제 여부(deleteYn)를 기준으로 고객을 조회합니다.
+     *
+     * @param id        고객 ID
+     * @param deleteYn  삭제 여부 ('N' 또는 'Y')
+     * @return 조건에 맞는 고객 정보
      */
-    List<CustomerEntity> findByCustomerNameContainingOrPhoneNumberContaining(String customerNameKeyword, String phoneNumberKeyword);
+    Optional<CustomerEntity> findByIdAndDeleteYn(Long id, String deleteYn);
+
+    /**
+     * 회사 ID 및 삭제 여부 기준으로 전체 고객 수를 조회합니다.
+     *
+     * @param companyId 회사의 ID
+     * @param deleteYn 삭제 여부 ('N' 또는 'Y')
+     * @return 해당 조건의 고객 수
+     */
+    long countTotalByCompanyIdAndDeleteYn(Long companyId, String deleteYn);
+
+    /**
+     * 회사 ID, 고객 유형, 삭제 여부 기준으로 고객 수를 조회합니다.
+     *
+     * @param type 고객 유형
+     * @param companyId 회사의 ID
+     * @param deleteYn 삭제 여부 ('N' 또는 'Y')
+     * @return 조건에 맞는 고객 수
+     */
+    long countByTypeAndCompanyIdAndDeleteYn(CustomerType type, Long companyId, String deleteYn);
 }

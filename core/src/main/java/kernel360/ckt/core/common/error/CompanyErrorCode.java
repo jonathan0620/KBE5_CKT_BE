@@ -4,8 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum CompanyErrorCode implements ErrorCode {
-    INVALID_REQUEST("400", "잘못된 요청입니다.", 400),
-    COMPANY_NOT_FOUND("404", "회사를 찾을 수 없습니다.", 404)
+    COMPANY_NOT_FOUND("404", "회사 정보를 찾을 수 없습니다. (ID - %d)", 500),
     ;
 
     private final String code;

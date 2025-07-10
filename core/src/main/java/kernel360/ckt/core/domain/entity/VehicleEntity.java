@@ -4,22 +4,25 @@ import jakarta.persistence.*;
 import kernel360.ckt.core.domain.enums.FuelType;
 import kernel360.ckt.core.domain.enums.TransmissionType;
 import kernel360.ckt.core.domain.enums.VehicleStatus;
+import kernel360.ckt.core.domain.persistence.BooleanToYNConverter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "vehicle")
 @Entity
-public class VehicleEntity {
+public class VehicleEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 10, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private CompanyEntity company;
+
+    @Column(nullable = false, length = 10)
     private String registrationNumber;
 
     @Column(length = 4)
@@ -46,18 +49,26 @@ public class VehicleEntity {
     @Column
     private VehicleStatus status;
 
+    @Column(columnDefinition = "DOUBLE PRECISION DEFAULT 0.0")
+    private Double lat;
+
+    @Column(columnDefinition = "DOUBLE PRECISION DEFAULT 0.0")
+    private Double lon;
+
+    @Column(columnDefinition = "BIGINT DEFAULT 0")
+    private Long odometer;
+
     @Lob
     private String memo;
 
-    @Column(nullable = false)
-    private LocalDateTime createAt;
+    @Column(nullable = false, length = 1, columnDefinition = "CHAR(1)")
+    @Convert(converter = BooleanToYNConverter.class)
+    private Boolean deleteYn = false;
 
-    @Column
-    private LocalDateTime updateAt;
-
-    private VehicleEntity(String registrationNumber, String modelYear, String manufacturer, String modelName,
+    private VehicleEntity(CompanyEntity company, String registrationNumber, String modelYear, String manufacturer, String modelName,
                           String batteryVoltage, FuelType fuelType, TransmissionType transmissionType,
                           VehicleStatus status, String memo) {
+        this.company = company;
         this.registrationNumber = registrationNumber;
         this.modelYear = modelYear;
         this.manufacturer = manufacturer;
@@ -67,13 +78,12 @@ public class VehicleEntity {
         this.transmissionType = transmissionType;
         this.status = status;
         this.memo = memo;
-        this.createAt = LocalDateTime.now();
     }
 
-    public static VehicleEntity create(String registrationNumber, String modelYear, String manufacturer, String modelName,
+    public static VehicleEntity create(CompanyEntity company, String registrationNumber, String modelYear, String manufacturer, String modelName,
                                        String batteryVoltage, FuelType fuelType, TransmissionType transmissionType,
                                        VehicleStatus status, String memo) {
-        return new VehicleEntity(registrationNumber, modelYear, manufacturer, modelName,
+        return new VehicleEntity(company, registrationNumber, modelYear, manufacturer, modelName,
             batteryVoltage, fuelType, transmissionType, status, memo);
     }
 
@@ -88,6 +98,19 @@ public class VehicleEntity {
         this.fuelType = fuelType;
         this.transmissionType = transmissionType;
         this.memo = memo;
-        this.updateAt = LocalDateTime.now();
+    }
+
+    public void updateLocation(Double lat, Double lon) {
+        this.lat = lat;
+        this.lon = lon;
+    }
+
+    public void updateOdometer(Long totalDistance) {
+        final long currentOdometer = (this.odometer != null) ? this.odometer : 0L;
+        this.odometer = currentOdometer + totalDistance;
+    }
+
+    public void delete() {
+        this.deleteYn = true;
     }
 }

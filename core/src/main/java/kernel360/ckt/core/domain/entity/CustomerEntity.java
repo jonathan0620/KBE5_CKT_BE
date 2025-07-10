@@ -2,6 +2,7 @@ package kernel360.ckt.core.domain.entity;
 
 import jakarta.persistence.*;
 import kernel360.ckt.core.domain.enums.CustomerStatus;
+import kernel360.ckt.core.domain.enums.CustomerType;
 import lombok.*;
 
 @Getter
@@ -14,36 +15,50 @@ public class CustomerEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CustomerType customerType;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column
+    private String phoneNumber;
+
     @Column(nullable = false)
     private String customerName;
 
     @Column(nullable = false, unique = true)
-    private String phoneNumber;
-
-    @Column(nullable = false, unique = true)
     private String licenseNumber;
+
     private String zipCode;
     private String address;
     private String detailedAddress;
     private String birthday;
 
-    @Lob
-//    @Column(columnDefinition = "Text")
-    private String memo;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CustomerStatus status;
 
-    public CustomerEntity(String customerName,
+    @Column(name = "company_id", nullable = false)
+    private Long companyId;
+
+    @Column(name = "delete_yn", nullable = false, length = 1, columnDefinition = "CHAR(1)")
+    private String deleteYn = "N";
+
+    public CustomerEntity(CustomerType customerType,
+                          String email,
+                          String customerName,
                           String phoneNumber,
                           String licenseNumber,
                           String zipCode,
                           String address,
                           String detailedAddress,
                           String birthday,
-                          String memo,
-                          CustomerStatus status) {
+                          CustomerStatus status,
+                          Long companyId) {
+        this.customerType = customerType;
+        this.email = email;
         this.customerName = customerName;
         this.phoneNumber = phoneNumber;
         this.licenseNumber = licenseNumber;
@@ -51,11 +66,13 @@ public class CustomerEntity extends BaseTimeEntity {
         this.address = address;
         this.detailedAddress = detailedAddress;
         this.birthday = birthday;
-        this.memo = memo;
         this.status = status;
+        this.companyId = companyId;
     }
 
     public static CustomerEntity create(
+        CustomerType customerType,
+        String email,
         String customerName,
         String phoneNumber,
         String licenseNumber,
@@ -63,9 +80,12 @@ public class CustomerEntity extends BaseTimeEntity {
         String address,
         String detailedAddress,
         String birthday,
-        String memo
+        CustomerStatus status,
+        Long companyId
     ) {
         return new CustomerEntity(
+            customerType,
+            email,
             customerName,
             phoneNumber,
             licenseNumber,
@@ -73,29 +93,34 @@ public class CustomerEntity extends BaseTimeEntity {
             address,
             detailedAddress,
             birthday,
-            memo,
-            CustomerStatus.ACTIVE
+            status,
+            companyId
         );
     }
 
-    public void updateBasicInfo(String customerName,
+    public void updateBasicInfo(CustomerType customerType,
+                                String email,
+                                String customerName,
                                 String phoneNumber,
                                 String licenseNumber,
                                 String zipCode,
                                 CustomerStatus status,
                                 String address,
                                 String detailedAddress,
-                                String birthday,
-                                String memo) {
-                                                this.customerName = customerName;
-                                                this.phoneNumber = phoneNumber;
-                                                this.licenseNumber = licenseNumber;
-                                                this.zipCode = zipCode;
-                                                this.status = status;
-                                                this.address = address;
-                                                this.detailedAddress = detailedAddress;
-                                                this.birthday = birthday;
-                                                this.memo = memo;
-                                            }
+                                String birthday) {
+        this.customerType = customerType;
+        this.email = email;
+        this.customerName = customerName;
+        this.phoneNumber = phoneNumber;
+        this.licenseNumber = licenseNumber;
+        this.zipCode = zipCode;
+        this.status = status;
+        this.address = address;
+        this.detailedAddress = detailedAddress;
+        this.birthday = birthday;
+    }
 
+    public void markAsDeleted() {
+        this.deleteYn = "Y";
+    }
 }

@@ -9,18 +9,12 @@ public record RentalListRequest(
     RentalStatus status,
     String keyword,
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime startAt,
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime endAt
 ) {
-    public RentalListRequest {
-        if (startAt != null && endAt != null && startAt.isAfter(endAt)) {
-            throw new IllegalArgumentException("검색 시작 시간은 종료 시간보다 이후일 수 없습니다.");
-        }
-    }
-
     public RentalListCommand toCommand(Long companyId) {
         return RentalListCommand.create(
             companyId,
